@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<title>Simulador Casa Própria</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: duas colunas — o que você preenche à esquerda, a resposta à direita; empilha no celular */
+:root{
+  --bg:#f3f6f7; --panel:#ffffff; --ink:#13232d; --ink-2:#4a5a63; --muted:#7b8a92;
+  --line:#d9e1e4; --grid:#e7edef; --accent:#1d5a7a; --good-bg:#e3f3ea; --good:#17633b;
+  --warn:#9a5b00; --warn-bg:#fdf1dc;
+  --s1:#2a78d6; --s2:#eb6834;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1a20; --panel:#16242c; --ink:#e8eff2; --ink-2:#b4c3ca; --muted:#82959e;
+  --line:#2a3b44; --grid:#1f2f37; --accent:#7cc0e3; --good-bg:#173528; --good:#7fd6a4;
+  --warn:#f0b65a; --warn-bg:#3a2c12; --s1:#3987e5; --s2:#d95926; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1a20; --panel:#16242c; --ink:#e8eff2; --ink-2:#b4c3ca; --muted:#82959e;
+  --line:#2a3b44; --grid:#1f2f37; --accent:#7cc0e3; --good-bg:#173528; --good:#7fd6a4;
+  --warn:#f0b65a; --warn-bg:#3a2c12; --s1:#3987e5; --s2:#d95926; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4vw,36px);line-height:1.08;margin:0;text-wrap:balance}
+.sub{color:var(--ink-2);margin:6px 0 0;max-width:62ch}
+.eyebrow{font:600 11.5px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.grid{display:grid;grid-template-columns:minmax(290px,340px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
+aside{display:flex;flex-direction:column;gap:10px}
+.grp{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.grp>.t,details.grp>summary{padding:12px 14px;display:flex;align-items:center;gap:10px;font:700 15px var(--f-display)}
+details.grp>summary{list-style:none;cursor:pointer;color:var(--ink-2)}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary::after{content:"+";margin-left:auto;color:var(--muted);font-family:var(--f-mono)}
+details.grp[open]>summary::after{content:"–"}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+.fields{display:flex;flex-direction:column;gap:10px;padding:0 14px 14px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:13px;color:var(--ink-2)}
+.in{display:flex;align-items:center;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+.in:focus-within{border-color:var(--accent)}
+.in input,.in select{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:400 14px var(--f-mono);padding:8px}
+.in .u{font:400 11.5px var(--f-mono);color:var(--muted);padding-right:8px;white-space:nowrap}
+.hint{font:400 11px var(--f-mono);color:var(--muted)}
+.help{font-size:12px;color:var(--muted);line-height:1.35}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink-2)}
+.chk input{margin-top:3px}
+input:focus-visible,select:focus-visible,summary:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink-2);font:600 13px var(--f-body);padding:8px 12px;border-radius:8px;cursor:pointer;align-self:flex-start}
+main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.verdict{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+.verdict h2{font:700 clamp(20px,2.6vw,26px)/1.22 var(--f-display);margin:6px 0 6px;text-wrap:balance}
+.verdict p{margin:0;color:var(--ink-2);max-width:68ch}
+.warnbox{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:13.5px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.panel h3{font:700 17px var(--f-display);margin:0 0 4px}
+.panel .note{color:var(--ink-2);font-size:13px;margin:0 0 10px}
+.cmp{overflow-x:auto}
+.cmp table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
+.cmp th,.cmp td{padding:9px 10px;border-bottom:1px solid var(--grid);text-align:right}
+.cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--ink-2);font-weight:400}
+.cmp thead th{font:700 14px var(--f-display);color:var(--ink)}
+.cmp td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.cmp tr.total td{font-weight:600;font-size:16px;color:var(--ink);border-bottom:0;padding-top:12px}
+.cmp td.best{background:var(--good-bg);color:var(--good);border-radius:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2);margin-bottom:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+.chart .lbl{fill:var(--ink);font-family:var(--f-body);font-size:12px;font-weight:600}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:170px;z-index:2}
+.tip b{display:block;font:700 12px var(--f-display);margin-bottom:4px}
+.tip div{display:flex;gap:10px;justify-content:space-between}
+.tip div span:first-child{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2)}
+.tip .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.foot{color:var(--muted);font-size:12.5px;max-width:85ch}
+.foot li{margin-bottom:3px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Simulador de moradia · valores de exemplo</div>
+    <h1>Comprar pronto ou comprar na planta?</h1>
+    <p class="sub"><b>Pronto:</b> compra hoje, financia quase tudo e já mora. <b>Planta:</b> paga a entrada, mora de aluguel e junta dinheiro no cofrinho até a entrega; nas chaves, paga o saldo com o que juntou e financia só o que faltar.</p>
+  </header>
+  <div class="grid">
+    <aside id="inputs"></aside>
+    <main>
+      <section class="verdict" id="verdict"></section>
+      <div id="warns"></div>
+      <section class="panel">
+        <h3>Lado a lado</h3>
+        <div class="cmp" id="cmp"></div>
+      </section>
+      <section class="panel">
+        <h3>Quanto sai do bolso por mês</h3>
+        <p class="note">Parcela, condomínio e aluguel. Na planta, o começo é aluguel + mensais da obra; depois da entrega, a parcela do banco. A linha tracejada é quanto você pode pagar.</p>
+        <div class="legend" id="lg2"></div>
+        <div class="chart" id="c2"></div>
+      </section>
+      <section class="panel">
+        <h3>Quanto você tem ao longo do tempo</h3>
+        <p class="note">Valor do imóvel + cofrinho − o que ainda deve.</p>
+        <div class="legend" id="lg1"></div>
+        <div class="chart" id="c1"></div>
+      </section>
+      <section class="foot">
+        <div class="eyebrow">Como o cálculo funciona</div>
+        <ul>
+          <li>Os dois caminhos começam com o mesmo dinheiro guardado e o mesmo valor por mês para moradia. O que sobra vai para o cofrinho; se faltar, aparece um aviso.</li>
+          <li>Na planta, o saldo devido à construtora é corrigido pelo INCC até as chaves. Na entrega, sai do cofrinho o que der (guardando a reserva) e o resto é financiado com os mesmos juros e prazo do pronto.</li>
+          <li>Até a entrega, o imóvel da planta vai do preço de lançamento até o valor de um pronto igual. Depois disso, cada imóvel sobe pela valorização que você informar (0 = não sobe).</li>
+          <li>Ainda não entram: FGTS, TR, juros de obra e imposto sobre o lucro na venda.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+const SC=[{k:'pronto',name:'Comprar pronto',short:'Pronto',c:'--s1'},{k:'planta',name:'Comprar na planta',short:'Planta',c:'--s2'}];
+const GROUPS=[
+ {title:'Você', fields:[
+  ['capital','Dinheiro guardado hoje','R$',200000,1000],
+  ['orcamento','Quanto pode pagar por mês com moradia','R$/mês',8000,100,'Inclui parcela, aluguel e condomínio. O que sobrar vai para o cofrinho.'],
+ ]},
+ {title:'Apartamento pronto', dot:'--s1', fields:[
+  ['precoPronto','Preço','R$',650000,5000],
+  ['entradaPronto','Entrada (o resto é financiado)','R$',130000,5000,'Os bancos costumam financiar até 80%, então a entrada mínima fica perto de 20% do preço.'],
+  ['valorizPronto','Quanto ele valoriza por ano','% ao ano',0,0.5,'0 = continua valendo o mesmo preço.'],
+ ]},
+ {title:'Apartamento na planta', dot:'--s2', fields:[
+  ['precoPlanta','Preço no lançamento','R$',560000,5000],
+  ['valorMercadoPlanta','Quanto vale hoje um pronto igual','R$',620000,5000,'Quanto o seu vai valer quando ficar pronto. Se não souber, repita o preço do lançamento.'],
+  ['entradaPlanta','Entrada','R$',56000,1000],
+  ['mensalObra','Parcela mensal durante a obra','R$/mês',0,100,'Deixe 0 se você só paga a entrada agora e o resto na entrega.'],
+  ['obraMeses','Meses até a entrega das chaves','meses',36,1],
+  ['aluguel','Aluguel + condomínio até a entrega','R$/mês',4100,50],
+  ['valorizPlanta','Quanto ele valoriza por ano','% ao ano',0,0.5,'Além do ganho de passar do preço de lançamento para o valor de um pronto igual. 0 = não sobe mais nada.'],
+  ['usarCofrinho','Na entrega, pagar com o que juntei no cofrinho e financiar só o que faltar','chk',true],
+ ]},
+ {title:'Financiamento no banco', fields:[
+  ['taxaFin','Juros','% ao ano',11.5,0.1],
+  ['prazoAnos','Prazo','anos',30,1],
+ ]},
+ {title:'Ajustes avançados', adv:true, fields:[
+  ['anos','Comparar daqui a quantos anos','anos',15,1],
+  ['pctCdi','Quanto o seu cofrinho rende','% do CDI',100,1],
+  ['cdi','CDI hoje','% ao ano',11,0.25,'Valor de exemplo. Confira o atual.'],
+  ['ir','Imposto sobre o rendimento','%',15,0.5],
+  ['ipca','Inflação','% ao ano',4.5,0.25],
+  ['incc','Correção das parcelas da planta (INCC)','% ao ano',6,0.25],
+  ['atraso','Atraso na entrega','meses',0,1],
+  ['reforcoAnual','Reforço anual na planta (balão)','R$/ano',0,1000,'Pagamento extra uma vez por ano durante a obra, se a construtora cobrar.'],
+  ['condoProprio','Condomínio + IPTU depois de comprar','R$/mês',950,50],
+  ['itbi','ITBI + cartório','% do valor',4,0.25],
+  ['seguro','Seguros do financiamento','R$/mês',180,10],
+  ['sistema','Tipo de parcela','sel','sac',[['sac','SAC (começa maior e cai)'],['price','Price (fixa)']]],
+  ['reserva','Reserva que você não quer tirar do cofrinho na entrega','R$',20000,1000],
+ ]},
+];
+const DEF={}; GROUPS.forEach(g=>g.fields.forEach(f=>DEF[f[0]]=f[3]));
+const KEY='simCasa.v4'; let P={...DEF};
+try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s) P={...DEF,...s}; }catch(e){}
+const brl=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const money=v=>(v<0?'−':'')+brl.format(Math.abs(v));
+function cmp(v){ const a=Math.abs(v),s=v<0?'−':''; if(a>=1e6) return s+'R$ '+(a/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi';
+  if(a>=1e3) return s+'R$ '+(a/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+' mil'; return s+'R$ '+a.toFixed(0); }
+
+function buildInputs(){
+  const host=document.getElementById('inputs'); host.innerHTML='';
+  GROUPS.forEach(g=>{
+    const d=document.createElement(g.adv?'details':'section'); d.className='grp';
+    const head=`${g.dot?`<span class="dot" style="background:var(${g.dot})"></span>`:''}${g.title}`;
+    d.innerHTML=(g.adv?`<summary>${head}</summary>`:`<div class="t">${head}</div>`)+'<div class="fields"></div>';
+    const fw=d.querySelector('.fields');
+    g.fields.forEach(([id,label,unit,def,step,help])=>{
+      const el=document.createElement('div'); const hp=help?`<span class="help">${help}</span>`:'';
+      if(unit==='chk'){ el.className='chk'; el.innerHTML=`<input type="checkbox" id="i_${id}"><label for="i_${id}">${label}</label>`;
+        fw.appendChild(el); const i=el.querySelector('input'); i.checked=!!P[id]; i.onchange=()=>{P[id]=i.checked;run();}; return; }
+      el.className='f';
+      if(unit==='sel'){ el.innerHTML=`<label for="i_${id}">${label}</label><div class="in"><select id="i_${id}">${step.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></div>`;
+        fw.appendChild(el); const s=el.querySelector('select'); s.value=P[id]; s.onchange=()=>{P[id]=s.value;run();}; return; }
+      el.innerHTML=`<label for="i_${id}">${label}</label><div class="in"><input type="number" inputmode="decimal" id="i_${id}" step="${step}" min="0"><span class="u">${unit}</span></div>${unit.startsWith('R$')?'<span class="hint"></span>':''}${hp}`;
+      fw.appendChild(el);
+      const i=el.querySelector('input'), h=el.querySelector('.hint'); i.value=P[id];
+      const upd=()=>{ const v=parseFloat(i.value); if(!isNaN(v)) P[id]=v; if(h) h.textContent=isNaN(v)?'':brl.format(v); };
+      upd(); i.oninput=()=>{upd();run();};
+    });
+    if(g.adv){ const b=document.createElement('button'); b.className='btn'; b.textContent='Voltar aos valores de exemplo';
+      b.onclick=()=>{P={...DEF}; buildInputs(); run();}; fw.appendChild(b); }
+    host.appendChild(d);
+  });
+}
+
+/* ---------- cálculo ---------- */
+const mr=a=>Math.pow(1+a,1/12)-1;
+function Loan(P0,aRate,n,sys){ const i=mr(aRate); let bal=Math.max(0,P0),k=0;
+  const pmt=i>0?bal*i/(1-Math.pow(1+i,-n)):bal/n, am=bal/n;
+  return {get bal(){return bal}, step(){ if(bal<=0.01||k>=n) return {pay:0,int:0}; k++; const int=bal*i;
+    let a=sys==='sac'?am:pmt-int; a=Math.min(a,bal); bal-=a; return {pay:a+int,int}; }}; }
+function simulate(p){
+  const T=Math.max(12,Math.round(p.anos*12)), n=Math.max(12,Math.round(p.prazoAnos*12));
+  const rInv=mr(p.cdi/100*p.pctCdi/100)*(1-p.ir/100), vA=p.valorizPronto/100, vB=p.valorizPlanta/100;
+  const yr=t=>Math.floor((t-1)/12), ipcaF=t=>Math.pow(1+p.ipca/100,yr(t));
+  const budget=t=>p.orcamento*ipcaF(t);
+  const own=(t,V)=>p.condoProprio*ipcaF(t)+V*0.005/12;
+  const mk=()=>({nw:[],out:[],inv:[],juros:0,aluguel:0,firstNeg:null,peak:0});
+  const rec=(r,t,inv,nw,out)=>{r.nw[t]=nw;r.out[t]=out;r.inv[t]=inv;if(out>r.peak)r.peak=out;if(inv<-1&&r.firstNeg===null)r.firstNeg=t;};
+
+  // Pronto
+  const A=mk(); { const Pr=p.precoPronto, ent=Math.min(p.entradaPronto,Pr); A.upfront=ent+Pr*p.itbi/100; A.moveIn=0;
+    let inv=p.capital-A.upfront; const L=Loan(Pr-ent,p.taxaFin/100,n,p.sistema); A.financiado=Pr-ent;
+    rec(A,0,inv,inv+Pr-L.bal,0);
+    for(let t=1;t<=T;t++){ const V=Pr*Math.pow(1+vA,t/12), s=L.step();
+      const out=s.pay+(s.pay>0?p.seguro:0)+own(t,V); A.juros+=s.int; if(t===1) A.first=out;
+      inv=inv*(1+rInv)+budget(t)-out; rec(A,t,inv,inv+V-L.bal,out); }
+    A.valueEnd=Pr*Math.pow(1+vA,T/12); A.debtEnd=L.bal; }
+  // Planta
+  const B=mk(); { const Pp=p.precoPlanta, nO=Math.max(1,Math.round(p.obraMeses)), D=nO+Math.max(0,Math.round(p.atraso));
+    const iM=mr(p.incc/100), inF=t=>Math.pow(1+iM,t), M=p.valorMercadoPlanta>0?p.valorMercadoPlanta:Pp;
+    const Vt=t=>(Pp+(M-Pp)*Math.min(1,t/D))*Math.pow(1+vB,t/12);
+    let base=Pp-p.entradaPlanta; // saldo em valores do contrato
+    B.upfront=p.entradaPlanta; B.pago=p.entradaPlanta; B.moveIn=D; B.valorEntrega=Vt(D);
+    let inv=p.capital-B.upfront, L=null; rec(B,0,inv,inv+Vt(0)-base,0);
+    for(let t=1;t<=T;t++){ let out=0;
+      if(t<=D){ out+=p.aluguel*Math.pow(1+p.ipca/100,yr(t)); B.aluguel+=out;
+        if(t<=nO && base>0){ const x=Math.min(base,p.mensalObra); base-=x; out+=x*inF(t); B.pago+=x*inF(t); }
+        if(t%12===0 && t<=nO && base>0 && p.reforcoAnual>0){ const x=Math.min(base,p.reforcoAnual); base-=x; out+=x*inF(t); B.pago+=x*inF(t); } }
+      else { const s=L.step(); out=s.pay+(s.pay>0?p.seguro:0)+own(t,Vt(t)); B.juros+=s.int; if(t===D+1) B.firstAfter=out; }
+      if(t===1) B.first=out;
+      inv=inv*(1+rInv)+budget(t)-out;
+      if(t===D){ const saldo=base*inF(t); B.saldoChaves=saldo; B.pago+=saldo; base=0; inv-=Vt(t)*p.itbi/100;
+        const usa=p.usarCofrinho?Math.max(0,Math.min(saldo,inv-p.reserva)):0; inv-=usa; B.pagoVista=usa; B.financiado=saldo-usa;
+        L=Loan(saldo-usa,p.taxaFin/100,n,p.sistema); }
+      const owed=t<D?base*inF(t):L.bal; rec(B,t,inv,inv+Vt(t)-owed,out); }
+    B.valueEnd=Vt(T); B.debtEnd=T<D?base*inF(T):L.bal; B.late=D>T; }
+  return {T,res:[A,B],budget:Array.from({length:T+1},(_,t)=>t?budget(t):p.orcamento)};
+}
+
+/* ---------- gráfico ---------- */
+function niceTicks(lo,hi,c){ const r=(hi-lo||1)/c, m=Math.pow(10,Math.floor(Math.log10(r))); const s=[1,2,2.5,5,10].map(k=>k*m).find(k=>k>=r);
+  const t=[]; for(let v=Math.floor(lo/s)*s; v<=Math.ceil(hi/s)*s+s/2; v+=s) t.push(+v.toFixed(6)); return t; }
+function lineChart(host,series,opt){
+  const W=Math.max(300,host.clientWidth), nar=W<520, H=nar?230:280, m={l:nar?50:60,r:nar?56:70,t:10,b:26};
+  const n=series[0].v.length, all=series.flatMap(s=>s.v).concat(opt.ref?opt.ref.v:[]);
+  const tk=niceTicks(Math.min(0,...all),Math.max(...all),nar?4:5), lo=tk[0], hi=tk[tk.length-1];
+  const x=i=>m.l+i/(n-1)*(W-m.l-m.r), y=v=>m.t+(1-(v-lo)/(hi-lo))*(H-m.t-m.b);
+  const yrs=(n-1)/12, ys=[1,2,5,10].find(s=>yrs/s<=(nar?5:8))||10; let g='';
+  tk.forEach(t=>{ g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(${t===0?'--line':'--grid'})"/><text x="${m.l-8}" y="${y(t)+4}" text-anchor="end">${cmp(t).replace('R$ ','')}</text>`; });
+  for(let a=0;a<=yrs;a+=ys) g+=`<text x="${x(a*12)}" y="${H-6}" text-anchor="middle">${a===0?'hoje':'ano '+a}</text>`;
+  const path=(v,st)=>v.map((val,i)=>st&&i?`H${x(i).toFixed(1)}V${y(val).toFixed(1)}`:(i?'L':'M')+x(i).toFixed(1)+','+y(val).toFixed(1)).join('');
+  if(opt.ref) g+=`<path d="${path(opt.ref.v,true)}" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  if(opt.mark!=null) g+=`<line x1="${x(opt.mark)}" x2="${x(opt.mark)}" y1="${m.t}" y2="${H-m.b}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${x(opt.mark)+4}" y="${m.t+10}">chaves</text>`;
+  series.forEach(s=>g+=`<path d="${path(s.v,opt.step)}" fill="none" stroke="var(${s.c})" stroke-width="2" stroke-linejoin="round"/>`);
+  const ends=series.map(s=>({s,y:y(s.v[n-1])})).sort((a,b)=>a.y-b.y); for(let i=1;i<ends.length;i++) if(ends[i].y-ends[i-1].y<15) ends[i].y=ends[i-1].y+15;
+  ends.forEach(e=>g+=`<circle cx="${x(n-1)}" cy="${y(e.s.v[n-1])}" r="3.5" fill="var(${e.s.c})" stroke="var(--panel)" stroke-width="2"/><text class="lbl" x="${W-m.r+8}" y="${e.y+4}">${e.s.short}</text>`);
+  g+=`<g class="hv" style="display:none"><line y1="${m.t}" y2="${H-m.b}" stroke="var(--ink-2)"/>${series.map(s=>`<circle r="4.5" fill="var(${s.c})" stroke="var(--panel)" stroke-width="2"/>`).join('')}</g><rect class="ov" x="${m.l}" y="0" width="${W-m.l-m.r}" height="${H}" fill="transparent" style="cursor:crosshair"/>`;
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opt.aria}">${g}</svg><div class="tip" hidden></div>`;
+  const svg=host.querySelector('svg'), hv=svg.querySelector('.hv'), tip=host.querySelector('.tip'), ov=svg.querySelector('.ov');
+  const move=ev=>{ const r=svg.getBoundingClientRect(), px=(ev.clientX-r.left)*W/r.width;
+    const i=Math.max(0,Math.min(n-1,Math.round((px-m.l)/(W-m.l-m.r)*(n-1)))); hv.style.display='';
+    const ln=hv.querySelector('line'); ln.setAttribute('x1',x(i)); ln.setAttribute('x2',x(i));
+    hv.querySelectorAll('circle').forEach((c,k)=>{c.setAttribute('cx',x(i));c.setAttribute('cy',y(series[k].v[i]));});
+    const a=Math.floor(i/12), mm=i%12;
+    tip.innerHTML=`<b>${i===0?'Hoje':`Ano ${a}${mm?`, mês ${mm}`:''}`}</b>`+series.map(s=>`<div><span><span class="dot" style="background:var(${s.c})"></span>${s.short}</span><span class="v">${money(s.v[i])}</span></div>`).join('')+(opt.ref?`<div><span>Você pode pagar</span><span class="v">${money(opt.ref.v[i])}</span></div>`:'');
+    tip.hidden=false; const tx=x(i)*r.width/W, tw=tip.offsetWidth; tip.style.left=(tx+12+tw>r.width?tx-12-tw:tx+12)+'px'; tip.style.top='8px'; };
+  ov.addEventListener('pointermove',move); ov.addEventListener('pointerdown',move);
+  ov.addEventListener('pointerleave',()=>{hv.style.display='none';tip.hidden=true;});
+}
+
+/* ---------- tela ---------- */
+function run(){
+  try{ localStorage.setItem(KEY,JSON.stringify(P)); }catch(e){}
+  const sim=simulate(P), {T,res}=sim, [A,B]=res, fa=A.nw[T], fb=B.nw[T];
+  const w=fa>=fb?0:1, diff=Math.abs(fa-fb), anos=P.anos;
+  const close=diff<Math.max(fa,fb)*0.03;
+  document.getElementById('verdict').innerHTML=`<div class="eyebrow">Daqui a ${anos} anos</div>
+    <h2><span class="dot" style="background:var(${SC[w].c});margin-right:8px;vertical-align:middle"></span>${close?'Praticamente empate':`${SC[w].name} deixa você com ${cmp(diff)} a mais`}</h2>
+    <p>${close?`A diferença é de ${cmp(diff)}, pequena demais para decidir só pelo dinheiro. Pese também morar já vs. esperar a obra.`:
+      w===0?`Você mora no seu imóvel desde o primeiro mês e não paga aluguel. Na planta, você paga ${cmp(B.aluguel)} de aluguel até receber as chaves.`:
+      `O desconto do lançamento compensa o aluguel de ${cmp(B.aluguel)} pago até as chaves.`}</p>`;
+  const warns=[]; res.forEach((r,k)=>{ if(r.firstNeg!==null) warns.push(`<b>${SC[k].name}:</b> o dinheiro não dá a partir do ${r.firstNeg===0?'primeiro dia (entrada + taxas passam do que você tem guardado)':'mês '+r.firstNeg+' (os gastos passam do que você pode pagar e o cofrinho acaba)'}.`); });
+  if(B.late) warns.push('<b>Planta:</b> as chaves só saem depois do fim da comparação. Aumente "Comparar daqui a quantos anos" nos ajustes avançados.');
+  if(P.entradaPlanta>P.precoPlanta||P.entradaPronto>P.precoPronto) warns.push('A entrada está maior que o preço do imóvel.');
+  document.getElementById('warns').innerHTML=warns.length?`<div class="warnbox">${warns.join('<br>')}</div>`:'';
+  const row=(lbl,a,b,lowerBetter)=>{ let ca='',cb=''; if(lowerBetter!=null&&typeof a==='number'){ if((lowerBetter?a<b:a>b)) ca='best'; else if(a!==b) cb='best'; }
+    const f=v=>typeof v==='number'?cmp(v):v; return `<tr><td>${lbl}</td><td class="${ca}">${f(a)}</td><td class="${cb}">${f(b)}</td></tr>`; };
+  const mv=r=>r.moveIn===0?'Já no 1º mês':`Mês ${r.moveIn} (${(r.moveIn/12).toLocaleString('pt-BR',{maximumFractionDigits:1})} anos)`;
+  let h=`<table><thead><tr><th></th><th><span class="dot" style="background:var(--s1)"></span> Pronto</th><th><span class="dot" style="background:var(--s2)"></span> Planta</th></tr></thead><tbody>`;
+  h+=row('Quando você se muda',mv(A),mv(B));
+  h+=row('Sai do bolso no dia da compra',A.upfront,B.upfront,true);
+  h+=row('Gasto no 1º mês',A.first,B.first,true);
+  h+=row('Gasto no 1º mês depois das chaves','—',B.firstAfter??'—');
+  h+=row('Maior gasto em um mês',A.peak,B.peak,true);
+  h+=row('Aluguel pago',0,B.aluguel,true);
+  h+=row('Saldo a pagar na entrega (com INCC)','—',B.saldoChaves??'—');
+  h+=row('↳ pago com o cofrinho','—',B.pagoVista??'—');
+  h+=row('Financiado no banco',A.financiado,B.financiado??0,true);
+  h+=row('Juros pagos ao banco',A.juros,B.juros,true);
+  h+=row('Valor no lançamento → na entrega','—',`${cmp(P.precoPlanta)} → ${cmp(B.valorEntrega)}`);
+  h+=row(`Valor do imóvel em ${anos} anos`,A.valueEnd,B.valueEnd,false);
+  h+=row('Ainda deve ao banco',A.debtEnd,B.debtEnd,true);
+  h+=row('No cofrinho',A.inv[T],B.inv[T],false);
+  h+=`<tr class="total"><td>Total que você tem</td><td class="${w===0?'best':''}">${cmp(fa)}</td><td class="${w===1?'best':''}">${cmp(fb)}</td></tr></tbody></table>`;
+  document.getElementById('cmp').innerHTML=h;
+  const leg=SC.map(s=>`<span><i style="background:var(${s.c})"></i>${s.name}</span>`).join('');
+  document.getElementById('lg1').innerHTML=leg;
+  document.getElementById('lg2').innerHTML=leg+`<span><i style="background:repeating-linear-gradient(90deg,var(--ink-2) 0 4px,transparent 4px 7px)"></i>Você pode pagar</span>`;
+  const ser=f=>res.map((r,k)=>({...SC[k],v:f(r)}));
+  lineChart(document.getElementById('c2'),ser(r=>r.out.map((v,t)=>t?v:r.out[1])),{step:true,ref:{v:sim.budget},mark:B.moveIn<=T?B.moveIn:null,aria:'Gasto mensal'});
+  lineChart(document.getElementById('c1'),ser(r=>r.nw),{mark:B.moveIn<=T?B.moveIn:null,aria:'Patrimônio ao longo do tempo'});
+}
+buildInputs(); run();
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(run,150);});
+</script>
+
+</html>
